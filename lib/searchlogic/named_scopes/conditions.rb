@@ -16,6 +16,7 @@ module Searchlogic
         :less_than_or_equal_to => [:lte],
         :greater_than => [:gt, :after],
         :greater_than_or_equal_to => [:gte],
+        :less_than_date => [:ltd]
       }
 
       WILDCARD_CONDITIONS = {
@@ -112,6 +113,8 @@ module Searchlogic
             scope_options(condition, column_type, "#{table_name}.#{column} != ?", :skip_conversion => skip_conversion)
           when /^less_than_or_equal_to/
             scope_options(condition, column_type, "#{table_name}.#{column} <= ?", :skip_conversion => skip_conversion)
+          when /^less_than_date/
+            scope_options(condition, column_type, "#{table_name}.#{column} < ?", :skip_conversion => skip_conversion, :value_modifier => :less_than_date)
           when /^less_than/
             scope_options(condition, column_type, "#{table_name}.#{column} < ?", :skip_conversion => skip_conversion)
           when /^greater_than_or_equal_to/
@@ -184,6 +187,12 @@ module Searchlogic
             "#{value}%"
           when :ends_with
             "%#{value}"
+          when :less_than_date
+            if value.class == Time or value.class == Date and !value.blank?
+              value.to_date.next 
+            else
+              value
+            end
           else
             value
           end
